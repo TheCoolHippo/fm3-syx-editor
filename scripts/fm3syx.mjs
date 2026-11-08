@@ -104,7 +104,8 @@ function chainRecords(m) {
 const FC = await import('./fcmap.mjs');
 const PP = { tap: j => j, tapfunc: j => 24 + j, label: j => 48 + j, param: j => 72 + 6 * j, hold: j => 216 + j, holdfunc: j => 240 + j,
   holdlabel: j => 264 + j, holdparam: j => 288 + 6 * j, text: j => 432 + 11 * j, holdtext: j => 696 + 11 * j, color: j => 1069 + j };
-function ppBase(m) { const r = chainRecords(m).find(x => x.eid === 200); if (!r) throw new Error('no per-preset record'); return r.start / 2 + 23; }
+function recBase(m, eid) { const r = chainRecords(m).find(x => x.eid === eid); if (!r) throw new Error('no record ' + eid); return r.start / 2 + 23; }
+const ppBase = m => recBase(m, 200);
 function setBody(m, body) { m.body = body; m.dv = new DataView(body.buffer, body.byteOffset, body.byteLength); }
 function save(m, out, slot = m.slot) {
   let bytes = author.reencodeDumpFromRawPatch(m.bytes, huff.reencodeRawPatch(m.patch.rawPatch, m.body));
@@ -446,6 +447,13 @@ Scene Controller ${n}: ${v.map(x => +(x / 655.34).toFixed(1)).join(' ')} %` : ''
     }
     save(m, outF); console.log('wrote', outF);
   },
+  // perf <file>: per-preset Performance page (record eid 201); perfset <in> <out> slot <1-10> <block> <param id> [L1] [L2] | clear <1-10>
+  async perf(f) { const P = await import('./fm3perf.mjs'); const m = load(f), D = recBase(m, 201); P.perfShow(o => m.dv.getUint16((D + o) * 2, true)); },
+  async perfset(inF, outF, ...r) {
+    const P = await import('./fm3perf.mjs'); const m = load(inF), D = recBase(m, 201);
+    for (const [o, v] of P.perfOps(r, true)) m.dv.setUint16((D + o) * 2, v, true);
+    save(m, outF); console.log('wrote', outF);
+  },
   // records <file>: chain records with their start word
   recwords(f) {
     const m = load(f);
@@ -509,6 +517,7 @@ if (!cmd[c]) {
   slot <in> <out> <N>                        retarget the file to another slot
   diff <a> <b>                               per-param differences
   pp <file>                                  per-preset switches PP#1-24 and their layout overrides
+  perf <file> | perfset <in> <out> slot <1-10> <block> <param> [L1] [L2] | clear <n>   per-preset Performance page
   ppset <in> <out> <PP 1-24> key=value ...   keys tap tapfunc label param hold holdfunc holdlabel holdparam text holdtext color
   ppset <in> <out> override <L> <V> <S> <PP|none>   make layout switch use a per-preset switch
   learn <file> <Block> <ch> <PARAM> <display>  record a raw->display point (calib.json)
