@@ -205,6 +205,8 @@ FM3-Edit changes Setup values with the same SET on **block 1, pid = system-bank 
 | 3606 | FM3 Startup Layout (1-based, as displayed) |
 | 8690 | FM3 Startup View |
 | 14861 | Active setlist (0-3) |
+| 6108 + c | Ring colour of FC category c (same codes as switch colours; 0 seems to mean the default) |
+| 7394 + r / 7406 + r | Stand-In row r (FM3 SW1 Tip, SW1 Ring, SW2 Tip, SW2 Ring, FC1 SW1-4, FC2 SW1-4): layout / switch, 0-based, 65535 = none (send **-1** live: 65535 is clamped) |
 
 ### Setup pages (Config, Audio, Scales, Out EQ, MIDI/Remote)
 Every Setup parameter is system word w = block-1 pid + 4, and the FM3 saves Setup changes by itself.
@@ -213,9 +215,6 @@ Every Setup parameter is system word w = block-1 pid + 4, and the FM3 saves Setu
 - Tables: bypass CC 138+eid, channel CC 394+eid, MIDI mapping PC n -> preset 650+n and scene 778+n, custom scales 906+12*scale+note, External Control n CC 1305+n and initial value 1321+n. CC values are 0-127, and 128 means None (send 128 live).
 - Out 1/2 EQ: the 22 words 19-40 read "0.00" (10 bands + level per output, order not verified). EQ type is at 8651/8652 (0 Off, 1 Graphic, 2 Parametric).
 - Word 103 is the USB buffer size, not a footswitch setting.
-
-| 6108 + c | Ring colour of FC category c (same codes as switch colours; 0 seems to mean the default) |
-| 7394 + r / 7406 + r | Stand-In row r (FM3 SW1 Tip, SW1 Ring, SW2 Tip, SW2 Ring, FC1 SW1-4, FC2 SW1-4): layout / switch, 0-based, 65535 = none (send **-1** live: 65535 is clamped) |
 
 Stand-In Switches and Ring Colors exist only on the FM3 front panel (not in FM3-Edit); decoded from a front-panel change + system diff,
 then set back live. `fm3fc.mjs show <sys.syx>` lists them.
