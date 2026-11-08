@@ -37,13 +37,14 @@ export const SETUP = {
   'cc-looper-record': [1290, 'v'], 'cc-looper-play': [1291, 't'], 'cc-looper-undo': [1292, 't'], 'cc-looper-once': [1293, 't'],
   'cc-looper-reverse': [1294, 't'], 'cc-looper-stop': [1295, 'v'], 'cc-looper-halfspeed': [1296, 't'],
   'cc-preset-dec': [120, 'v'], 'cc-scene-select': [94, 'v'], 'send-midi-pc': [77, 'v', '0 Off, 1-16 channel, 17 Omni'],
-  'pc-offset': [75, 'c'], 'pc-mapping': [101, 'c', '0 Off, 1 On'],
+  'pc-offset': [75, 'c'], 'pc-mapping': [101, 'c', '0 Off, 1 On'], 'midi-thru': [7431, 'v', '0 Off, 1 On (seen on the FM3 screen)'],
   // Config (front panel) + Tuner
   'tone-control-display': [134, 'p', '0 Authentic, 1 Ideal'], 'input1-gain': [14875, 'c', 'live SET in display units'],
   'value-knob-push': [111, 'c'], 'tuner-mute': [10, 'c', 'Off / Input / Output'], 'tuner-use-offsets': [12, 'c'],
   'tuner-offset-e1': [13, 'c', 'cents'], 'tuner-offset-b2': [14, 'c'], 'tuner-offset-g3': [15, 'c'], 'tuner-offset-d4': [16, 'c'],
   'tuner-offset-a5': [17, 'c'], 'tuner-offset-e6': [18, 'c'], 'tuner-source': [104, 'c', '0 Input 1'],
   'tuner-downtune': [8649, 'c', 'semitones'], 'tuner-display-mode': [8650, 'c', '0 Mixed, all flats, all sharps'],
+  'tuner-color-theme': [14880, 'v', '0 Legacy, 1 Red, 2 Green, 3 Blue, 4 Yellow, 5 Cyan, 6 Magenta (seen on the FM3 screen)'],
   // Audio extras
   'out2-type': [8684, 'c', '0 Unity Gain, 1 Line Level'], 'out2-level': [8683, 'c', '-10 dBV / +4 dBu (Line Level only)'],
   'usb12-playback-dest': [8688, 'c', '0 Output 1, 1 Output 2'], 'usb12-level': [127, 'c', 'dB'], 'usb34-level': [128, 'c', 'dB'],
@@ -65,15 +66,15 @@ export const SETUP = {
   'invert-mini-displays': [8298, 'c'], 'main-lcd-display-mode': [14868, 'p', '0 Automatic, 1 Always Preset/Scene, 2 Always Song/Section'],
   // Ring colours (0 Off/default, 1 Red, 2 Orange, 3 Yellow, 4 Green, 5 Blue, 6 Cyan, 7 Purple, 8 White, 9 Pink, 10 Teal, 11 Yellow-Green):
   // Unassigned..Looper at 6108-6116 (fm3fc.mjs); the later categories sit elsewhere (values match the colours on the unit):
-  'ring-color-view': [7430, 'p'], 'ring-color-setlist': [14869, 'p'], 'ring-color-song': [14870, 'p'], 'ring-color-section': [14871, 'p'],
-  'ring-color-per-preset': [6118, 'i', 'by elimination'],
+  'ring-color-view': [7430, 'v'], 'ring-color-setlist': [14869, 'v'], 'ring-color-song': [14870, 'v'], 'ring-color-section': [14871, 'v'],
+  // (the Ring Colors page shows Bank..Control Switch + View, Setlist, Song, Section only; 6108, 6116, 6118 are not shown)
 };
 // Not settings on the FM3 (Axe-Fx III layout kept in the bank): 41-42 IR capture type/method, 46-47 In3/4 mode, 50-51 In3/4 pad,
 // 54-55 Out3/4 mode, 58-59 Out3/4 phase, 62-63 Out3/4 pad, 66 digital input source, 68 word clock, 106-107 Out3/4 copy In1,
 // 126 USB 7/8 source, 129-130 USB 5/6 + 7/8 level, 131-133 IR capture processing/delay/deconvolution, 135 AES level, 136 USB mapping.
 // State, not settings: 80-83 pedal calibration, 105 last preset, 14874 save counter, 14864-14867 and 14872-14873 (setlist state).
-// Unresolved (front panel check needed): 7431 and 14881 (Off/On, one of them is probably MIDI Thru), 14880 (Legacy, Red, Green,
-// Blue, Yellow, Cyan, Magenta: Axe-Fx III calls this Logo Color), 14876 (Last Used / 0-3), 8689 (a colour, Off).
+// Not shown anywhere on the FM3 (checked every Setup, Tuner and Setlist page on the unit, 2026-11-08): 14881 (Off/On),
+// 14876 (Last Used / 0-3), 8689 (a colour, Off). Leave them alone.
 // Output EQ (graphic): Out 1 words 19-29, Out 2 words 30-40 = 31, 63, 125, 250, 500, 1k, 2k, 4k, 8k, 16k Hz, Level.
 // Stored 32767 + dB/12*32767; live SET takes dB (send 0 for flat, not 32767).
 const BANDS = ['31', '63', '125', '250', '500', '1k', '2k', '4k', '8k', '16k', 'level'];
