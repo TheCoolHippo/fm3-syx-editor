@@ -132,7 +132,7 @@ Switch index **i = layout × 12 + view × 3 + switch** (0-based; layout 8 = Mast
 |---|---|---|
 | category (0 Unassigned, 1 Bank, 2 Preset, 3 Scene, 4 Effect, 5 Utility, 6 Layout, 7 Control Switch, 8 Looper, 9 Per-Preset, 10 View, 11 Setlist, 12 Song, 13 Song Section) | 1658 + i | 2630 + i |
 | function (FM3-Edit menu order: Utility 0 Tuner 1 Tap Tempo 2 Amp Level+Save 3 Reveal Hold 4 Scene Level+Save; Effect 0 Bypass 1 Chan Select 2 Chan Toggle 3 Chan Inc/Dec) | 1766 + i | 2738 + i |
-| label mode (0 Name, 1 Number, 2 Custom for Scene) | 1874 + i | 2846 + i |
+| label mode (Scene: 0 Name, 1 Number, 2 Custom; Effect: 0 Long Name, 1 Short Name, 2 Long Name + Channel, 3 Short Name + Channel, 4 Custom) | 1874 + i | 2846 + i |
 | params, 6 words (preset/scene/layout number 1-based; Effect = [block, channel]; Inc/Dec = [step, wrap, lower, upper], step 65535 = -1) | 1982 + 6i | 2954 + 6i |
 | custom label, 10 chars + 0 | 3623 + 11i | 4811 + 11i (inferred) |
 Layout names at 1370 + 32 × layout; colour at 6000 + i (0 default, 1 red, 2 orange…).
