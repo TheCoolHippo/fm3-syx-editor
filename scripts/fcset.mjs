@@ -1,8 +1,8 @@
 // Live footswitch edit, same message FM3-Edit sends (fn 0x01 sub 0x09 on block 199), no reboot needed.
 // node fcset.mjs <pid> <value> [<pid> <value> ...]   value = float (category, function, scene, block number ...)
 // pid map (i = layout*12 + view*3 + switch, 0-based): tap cat i, tap func 108+i, tap label 216+i, tap params 324+6i+k,
-// hold cat 972+i, hold func 1080+i, hold label 1188+i, hold params 1296+6i+k, tap custom text 2241+11i (one char per pid,
-// value = char code, 0 after the end), hold text 3429+11i (inferred), colour 4618+i.
+// hold cat 972+i, hold func 1080+i, hold label 1188+i (verified), hold params 1296+6i+k, tap custom text 2241+11i (one char per pid,
+// value = char code, 0 after the end), hold text 3429+11i (verified), colour 4618+i.
 // node fcset.mjs text <layout 1-9> <view 1-4> <switch 1-3> <TEXT>   sets tap label mode Custom (Scene 2 / Effect 4: pass mode=N) and text
 // Only pids seen in FM3-Edit captures are known safe. Never send GETs (sub 0x1a/0x1b) to block 199 for unknown pids.
 import { createRequire } from 'node:module';
@@ -19,7 +19,7 @@ export function setMsg(pid, value, eid = 199) {
 let a = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href ? process.argv.slice(2) : [], eid = 199;
 // Per-preset switches (current preset, block 200): node fcset.mjs pp <pid> <value> ... | pp text <PP 1-24> <TEXT> [mode=N]
 // pid map (j = PP-1): tap cat j, func 24+j, label 48+j, params 72+6j+k, hold cat 216+j, hold func 240+j, hold label 264+j,
-// hold params 288+6j+k, tap text 432+11j, hold text 696+11j (inferred), layout override 960+i (value = PP-1, 65535 none), colour 1069+j.
+// hold params 288+6j+k, tap text 432+11j, hold text 696+11j (verified), layout override 960+i (value = PP-1, 65535 none), colour 1069+j.
 // Changes are live only: save the preset (FM3 or fm3syx push) to keep them.
 // System (Setup) parameters, block 1: node fcset.mjs sys <pid> <value> ...  pid = system-bank word - 4 (see fm3song.mjs, SKILL.md)
 if (a[0] === 'sys') { eid = 1; a = a.slice(1); }

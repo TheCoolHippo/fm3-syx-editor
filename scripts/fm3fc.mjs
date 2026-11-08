@@ -5,7 +5,7 @@
 // Switch index i = layout*12 + view*3 + switch (all 0-based; layout 8 = Master Layout). Offsets inside a copy:
 //   1370 + 32*L      layout name (one char per word)
 //   Tap:  category 1658+i, function 1766+i, label mode 1874+i, params 1982+6i, custom text 3623+11i
-//   Hold: category 2630+i, function 2738+i, label mode 2846+i, params 2954+6i, custom text 4811+11i (inferred)
+//   Hold: category 2630+i, function 2738+i, label mode 2846+i, params 2954+6i, custom text 4811+11i (verified 2026-11-08)
 //   colour 6000+i (0 default, 1 red ...)
 // Params word 0 = preset / scene / block / layout number (1-based except blocks); Effect: [block, channel 0-3];
 // Hold View or Bank Inc/Dec: [step (65535 = -1), wrap, lower, upper]. Function codes = FM3-Edit menu order.

@@ -197,8 +197,8 @@ FM3-Edit changes Setup values with the same SET on **block 1, pid = system-bank 
 |---|---|
 | 70 | FC Hold Function Timeout (index: 0 = 0.25 s, 1 = 0.50, 2 = 0.75, 3 = 1.00 …) |
 | 112 | Main display Preset Num (1 On, 0 Off) |
-| 7014 / 7038 | CS1 command 1 MIDI channel / CC number |
-| 7111 | CS1 Exclusive (1 yes) |
+| 6990 / 7014 / 7038 / 7062 / 7086 + idx | CS MIDI type (1 CC) / channel / number / on / off value (65535 = --), idx = CS × 4 + command |
+| 7111 + CS | Control switch Exclusive (1 yes) |
 | 7426 | Hold Function Mode (0 Automatic, 1 Switch Up) |
 | 8297 | Footswitch Tuner Mode (1 Enabled) |
 | 8686 | Bank Switch Limits (**1 = Disabled, 0 = Enabled**) |
@@ -212,13 +212,13 @@ Stand-In Switches and Ring Colors exist only on the FM3 front panel (not in FM3-
 then set back live. `fm3fc.mjs show <sys.syx>` lists them.
 
 ## Performance pages — `fm3perf.mjs` + `fm3syx.mjs perf/perfset` (verified 2026-11-08)
-Two pages of 10 controls with the same layout (k = slot 0-9, offsets from the page base): enabled flag k, block effect id 10 + k
+Two pages of 10 controls with the same layout (k = slot 0-9, offsets from the page base): control type k (0 empty, 1 knob, 2 list/button, 7 on/off switch), block effect id 10 + k
 (Amp 1 = 58, Reverb 1 = 66 …), parameter id 20 + k (the block's own parameter ids), label line 1 30 + 16k, line 2 190 + 16k
 (one char per word, 0-terminated).
 - **Global page:** system bank, base word 8299. Live: block 1, pid = word − 4. `fm3perf.mjs show <sys.syx>`, `set`, `live global <op>`.
 - **Per-preset page:** preset record eid 201, base = record start + 23. Live: block 201, pid = offset (edit buffer, save the preset).
   `fm3syx.mjs perf <file>`, `perfset <in> <out> <op>`, `fm3perf.mjs live pp <op>`.
-- ops: `slot <1-10> <Block n | effect id> <param id> [LINE1] [LINE2]`, `clear <1-10>`. FM3-Edit writes flag 0, the control, then flag 1.
+- ops: `slot <1-10> <Block n | effect id> <param id> [LINE1] [LINE2] [type=1|2|7]`, `clear <1-10>`. FM3-Edit writes type 0, the control, then the type.
 Scripted edits matched FM3-Edit's; live edits read back as sent.
 
 ## Scene loudness — `levels.py` (verified 2026-11-03 on a test preset)

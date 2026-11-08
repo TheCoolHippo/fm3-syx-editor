@@ -1,13 +1,13 @@
 // FM3 Performance pages (10 controls each), decoded 2026-11-08.
 // Both pages share one layout (k = slot 0-9, row 1 = 0-4, row 2 = 5-9), offsets from the page base:
-//   enabled flag 0+k (FM3-Edit writes 0, then the control, then 1), block effect id 10+k (Amp 1 = 58, Reverb 1 = 66 ...),
+//   control type 0+k (0 empty, 1 knob, 2 list/button, 7 on/off switch; FM3-Edit writes 0, then the control, then the type), block effect id 10+k (Amp 1 = 58, Reverb 1 = 66 ...),
 //   parameter id 20+k (same ids as the block's parameters), label line 1 30+16k, line 2 190+16k (one char per word, 0-terminated)
 // Global page: system bank, base word 8299; live = block 1, pid = word - 4. Per-preset page: preset record eid 200+1 = 201,
 // base = record data start (see fm3syx.mjs perf); live = block 201, pid = offset (edit buffer: save the preset to keep it).
 //   node fm3perf.mjs show <sys.syx>                    global page
 //   node fm3perf.mjs set <in.syx> <out.syx> <op> ...    global page in a system file (both copies, CRCs fixed)
 //   node fm3perf.mjs live global|pp <op> ...          change the running FM3
-// ops: slot <1-10> <block: Amp 1 | Reverb 2 | effect id> <param id> [LINE1] [LINE2] | clear <1-10>
+// ops: slot <1-10> <block: Amp 1 | Reverb 2 | effect id> <param id> [LINE1] [LINE2] [type=1|2|7] | clear <1-10>
 import { load, save, newest, COPY } from './fm3fc.mjs';
 
 export const EFFECT_ID = { Input: 37, Output: 42, Comp: 46, GEQ: 50, PEQ: 54, Amp: 58, Cab: 62, Reverb: 66, Delay: 70,
@@ -25,12 +25,13 @@ export function perfOps(a, full = false) {
   if (op === 'clear') return [[k, 0], [10 + k, 0], [20 + k, 0], ...label(30 + 16 * k, '', true), ...label(190 + 16 * k, '', true)];
   if (op !== 'slot') throw new Error('unknown op ' + op);
   // "Amp 1" may come as two words: join a trailing instance number
-  let [blk, pid, l1 = '', l2 = ''] = /^\d$/.test(r[1]) && isNaN(+r[0]) ? [r[0] + ' ' + r[1], ...r.slice(2)] : r;
-  return [[k, 0], [10 + k, eidOf(blk)], [20 + k, +pid], ...label(30 + 16 * k, l1, full), ...label(190 + 16 * k, l2, full), [k, 1]];
+  const t = r.find(x => /^type=\d$/.test(x)), rr = r.filter(x => x !== t), type = t ? +t.slice(5) : 1;
+  let [blk, pid, l1 = '', l2 = ''] = /^\d$/.test(rr[1]) && isNaN(+rr[0]) ? [rr[0] + ' ' + rr[1], ...rr.slice(2)] : rr;
+  return [[k, 0], [10 + k, eidOf(blk)], [20 + k, +pid], ...label(30 + 16 * k, l1, full), ...label(190 + 16 * k, l2, full), [k, type]];
 }
 export function perfShow(get) {
   const txt = o => { let s = ''; for (let c = 0; c < 16 && get(o + c); c++) s += String.fromCharCode(get(o + c)); return s; };
-  for (let k = 0; k < 10; k++) console.log(`${k + 1}: ${get(k) ? 'on ' : 'off'} (${get(k)}) ${blockName(get(10 + k))} param ${get(20 + k)} "${txt(30 + 16 * k)}" "${txt(190 + 16 * k)}"`);
+  for (let k = 0; k < 10; k++) console.log(`${k + 1}: ${({ 0: 'empty', 1: 'knob', 2: 'list', 7: 'switch' })[get(k)] ?? 'type ' + get(k)} ${blockName(get(10 + k))} param ${get(20 + k)} "${txt(30 + 16 * k)}" "${txt(190 + 16 * k)}"`);
 }
 
 const [cmd, ...a] = process.argv[1] && import.meta.url === new URL('file:///' + process.argv[1].replace(/\\/g, '/')).href ? process.argv.slice(2) : ['lib'];
