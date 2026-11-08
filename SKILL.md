@@ -205,7 +205,11 @@ FM3-Edit changes Setup values with the same SET on **block 1, pid = system-bank 
 | 8690 | FM3 Startup View |
 | 14861 | Active setlist (0-3) |
 
-Stand-In Switches and Ring Colors are not in FM3-Edit (front panel only) and are not decoded.
+| 6108 + c | Ring colour of FC category c (same codes as switch colours; 0 seems to mean the default) |
+| 7394 + r / 7406 + r | Stand-In row r (FM3 SW1 Tip, SW1 Ring, SW2 Tip, SW2 Ring, FC1 SW1-4, FC2 SW1-4): layout / switch, 0-based, 65535 = none (send **-1** live: 65535 is clamped) |
+
+Stand-In Switches and Ring Colors exist only on the FM3 front panel (not in FM3-Edit); decoded from a front-panel change + system diff,
+then set back live. `fm3fc.mjs show <sys.syx>` lists them.
 
 ## Scene loudness — `levels.py` (verified 2026-11-03 on a test preset)
 Re-amps a synthetic plucked-guitar DI (chords + single notes, peak −14 dBFS) through each scene and

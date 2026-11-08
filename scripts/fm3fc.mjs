@@ -18,6 +18,7 @@ import { CAT, FUNC, BLOCK } from './fcmap.mjs';
 import { pathToFileURL } from 'node:url';
 
 export const COPY = [0, 32768];
+const STANDIN = ['FM3 SW1 Tip', 'FM3 SW1 Ring', 'FM3 SW2 Tip', 'FM3 SW2 Ring', 'FC1 SW1', 'FC1 SW2', 'FC1 SW3', 'FC1 SW4', 'FC2 SW1', 'FC2 SW2', 'FC2 SW3', 'FC2 SW4'];
 const FIELD = { tap: i => 1658 + i, tapfunc: i => 1766 + i, label: i => 1874 + i, param: i => 1982 + 6 * i,
   hold: i => 2630 + i, holdfunc: i => 2738 + i, holdlabel: i => 2846 + i, holdparam: i => 2954 + 6 * i, color: i => 6000 + i };
 const TEXT = { text: i => 3623 + 11 * i, holdtext: i => 4811 + 11 * i };
@@ -48,7 +49,7 @@ export function save(m, out) {
 export const newest = w => (w[32768 + 14874] > w[14874] ? 32768 : 0);
 const name = (w, b, L) => String.fromCharCode(...[...w.slice(b + 1370 + 32 * L, b + 1370 + 32 * L + 16)].filter(c => c >= 32 && c < 127));
 
-const [cmd, ...a] = import.meta.url === pathToFileURL(process.argv[1]).href ? process.argv.slice(2) : ['lib'];
+const [cmd, ...a] = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href ? process.argv.slice(2) : ['lib'];
 if (cmd === 'lib') {} else if (cmd === 'show') {
   const { w } = load(a[0]); const b = newest(w);
   console.log(`newest copy at ${b} (counters ${w[14874]} / ${w[32768 + 14874]}), crc ${[0, 32768].map(x => w[x + 2] === crc(w, x) ? 'OK' : 'BAD').join(' ')}`);
@@ -64,6 +65,11 @@ if (cmd === 'lib') {} else if (cmd === 'show') {
       const blk = g('tap') === 4 ? ` [${BLOCK[w[b + FIELD.param(i)]]}]` : '';
       console.log(`  V${v + 1} S${s + 1}: tap ${CAT[g('tap')] ?? g('tap')}/${fn(g('tap'), g('tapfunc'))} p=${ps('param')}${blk} label ${g('label')}${txt('text') ? ' "' + txt('text') + '"' : ''} | hold ${CAT[g('hold')] ?? g('hold')}/${fn(g('hold'), g('holdfunc'))} p=${ps('holdparam')} | color ${g('color')}`);
     }
+  }
+  if (!a[1]) {
+    // Stand-In switches: layout 7394+r, switch 7406+r (0-based, 65535 none; live value -1). Ring colours per category 6108+c.
+    STANDIN.forEach((n, r) => { const L = w[b + 7394 + r], S = w[b + 7406 + r]; if (L !== 65535) console.log(`Stand-In ${n}: Layout ${L + 1} switch ${S + 1}`); });
+    console.log('Ring colours: ' + CAT.map((c, k) => `${c} ${w[b + 6108 + k]}`).join(', '));
   }
 } else if (cmd === 'set') {
   const [inp, out, L, V, S, ...kv] = a; const m = load(inp); const i = (L - 1) * 12 + (V - 1) * 3 + (S - 1);

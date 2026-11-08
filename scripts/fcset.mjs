@@ -16,7 +16,7 @@ export function setMsg(pid, value, eid = 199) {
     u & 0x7f, (u >> 7) & 0x7f, (u >> 14) & 0x7f, (u >> 21) & 0x7f, (u >> 28) & 0x0f, 0, 0, 0, 0];
   let c = 0; for (const b of m) c ^= b; return Buffer.from([...m, c & 0x7f, 0xf7]);
 }
-let a = import.meta.url === pathToFileURL(process.argv[1]).href ? process.argv.slice(2) : [], eid = 199;
+let a = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href ? process.argv.slice(2) : [], eid = 199;
 // Per-preset switches (current preset, block 200): node fcset.mjs pp <pid> <value> ... | pp text <PP 1-24> <TEXT> [mode=N]
 // pid map (j = PP-1): tap cat j, func 24+j, label 48+j, params 72+6j+k, hold cat 216+j, hold func 240+j, hold label 264+j,
 // hold params 288+6j+k, tap text 432+11j, hold text 696+11j (inferred), layout override 960+i (value = PP-1, 65535 none), colour 1069+j.
