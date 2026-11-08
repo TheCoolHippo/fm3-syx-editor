@@ -1,0 +1,110 @@
+{
+ "PITCH_FEEDBACK1": {
+  "lin": [
+   0,
+   100
+  ]
+ },
+ "PITCH_FEEDBACK2": {
+  "lin": [
+   0,
+   100
+  ]
+ },
+ "PITCH_FEEDBACK3": {
+  "lin": [
+   0,
+   100
+  ]
+ },
+ "PITCH_FEEDBACK4": {
+  "lin": [
+   0,
+   100
+  ]
+ },
+ "PITCH_DETUNE1": {
+  "lin": [
+   -50,
+   50
+  ]
+ },
+ "PITCH_DETUNE2": {
+  "lin": [
+   -50,
+   50
+  ]
+ },
+ "PITCH_DETUNE3": {
+  "lin": [
+   -50,
+   50
+  ]
+ },
+ "PITCH_DETUNE4": {
+  "lin": [
+   -50,
+   50
+  ]
+ },
+ "PITCH_LEVEL": {
+  "lin": [
+   -80,
+   20
+  ]
+ },
+ "DELAY_LEVEL": {
+  "lin": [
+   -80,
+   20
+  ]
+ },
+ "REVERB_LEVEL": {
+  "lin": [
+   -80,
+   20
+  ]
+ },
+ "DELAY_FEED": {
+  "lin": [
+   -100,
+   100
+  ]
+ },
+ "DELAY_TIME": [
+  [
+   0,
+   0
+  ],
+  [
+   2044,
+   500
+  ]
+ ],
+ "REVERB_TIME": [
+  [
+   0,
+   0
+  ],
+  [
+   2034,
+   3.2
+  ],
+  [
+   5085,
+   7.85
+  ]
+ ],
+ "PITCH_LPFREQ": {
+  "log": [
+   200,
+   20000
+  ]
+ },
+ "PITCH_HPFREQ": {
+  "log": [
+   20,
+   2000
+  ]
+ }
+}
