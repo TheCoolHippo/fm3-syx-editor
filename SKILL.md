@@ -202,6 +202,7 @@ FM3-Edit changes Setup values with the same SET on **block 1, pid = system-bank 
 | 7426 | Hold Function Mode (0 Automatic, 1 Switch Up) |
 | 8297 | Footswitch Tuner Mode (1 Enabled) |
 | 8686 | Bank Switch Limits (**1 = Disabled, 0 = Enabled**) |
+| 3606 | FM3 Startup Layout (1-based, as displayed) |
 | 8690 | FM3 Startup View |
 | 14861 | Active setlist (0-3) |
 
