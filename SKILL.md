@@ -173,6 +173,23 @@ Codes are the same as the layouts (tables in `fcmap.mjs`).
   (`F0 00 01 74 11 01 26 00 00 00 00 00 <slot & 0x7f> <slot >> 7> 00 00 00 00 00 00 00 <xor> F7`) only while that slot is loaded,
   or push a file. Live set + save + pull gave the original preset body back.
 
+## Setlists, Songs, Sections — `fm3song.mjs` (file + live) (verified 2026-11-08)
+In the system bank (two copies, same rules as the layouts). Names here are 10 chars, **2 characters per word**, low byte first.
+Offsets in a copy (s = song 0-127, k = section 0-5, L = setlist 0-3, n = slot 0-31):
+| Item | Word | Value |
+|---|---|---|
+| song name | 8694 + 5s | text |
+| section name | 9334 + 5(6s + k) | text |
+| section preset | 13174 + 6s + k | preset + 1, 0 = None |
+| section scene | 13943 + 6s + k | 1-8, 0 = Default |
+| setlist slot | 14712 + 32L + n | song number, 0 = empty |
+| setlist name | 14841 + 5L | text |
+
+Live: FM3-Edit sends the usual SET (fn 0x01 sub 0x09) on block 1 with **pid = word − 4**; the FM3 stores it itself.
+`fm3song.mjs show <sys.syx>`, `set <in> <out> <op>`, `live <op>`; ops `song N NAME`, `sect S K name= preset= scene=`,
+`setname L NAME`, `slots L song song ...`. A scripted file matched FM3-Edit's result; a live edit read back as sent.
+The active setlist is not located yet.
+
 ## Scene loudness — `levels.py` (verified 2026-11-03 on a test preset)
 Re-amps a synthetic plucked-guitar DI (chords + single notes, peak −14 dBFS) through each scene and
 records the output. Steps (ask the user first: the guitar input is silent while Input 1 = USB):

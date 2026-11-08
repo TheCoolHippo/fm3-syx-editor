@@ -15,26 +15,27 @@
 //   node fm3fc.mjs set <in> <out> <layout 1-9> <view 1-4> <switch 1-3> key=value ...   keys: tap tapfunc label param text hold holdfunc holdlabel holdparam holdtext color (param=Wah 1 accepted)
 import { readFileSync, writeFileSync } from 'node:fs';
 import { CAT, FUNC, BLOCK } from './fcmap.mjs';
+import { pathToFileURL } from 'node:url';
 
-const COPY = [0, 32768];
+export const COPY = [0, 32768];
 const FIELD = { tap: i => 1658 + i, tapfunc: i => 1766 + i, label: i => 1874 + i, param: i => 1982 + 6 * i,
   hold: i => 2630 + i, holdfunc: i => 2738 + i, holdlabel: i => 2846 + i, holdparam: i => 2954 + 6 * i, color: i => 6000 + i };
 const TEXT = { text: i => 3623 + 11 * i, holdtext: i => 4811 + 11 * i };
 
-function frames(b) { const fr = []; let s = 0; for (let i = 0; i < b.length; i++) if (b[i] === 0xf7) { fr.push(b.subarray(s, i + 1)); s = i + 1; } return fr; }
-function load(file) {
+export function frames(b) { const fr = []; let s = 0; for (let i = 0; i < b.length; i++) if (b[i] === 0xf7) { fr.push(b.subarray(s, i + 1)); s = i + 1; } return fr; }
+export function load(file) {
   const b = readFileSync(file); const fr = frames(b);
   if (fr[0][5] !== 0x51 || fr.at(-1)[5] !== 0x53) throw new Error('not an FM3 system backup');
   const ch = fr.filter(f => f[5] === 0x52); const w = new Uint16Array(ch.length * 1024);
   ch.forEach((f, k) => { for (let i = 0; i < 1024; i++) { const o = 8 + i * 3; w[k * 1024 + i] = (f[o] | f[o + 1] << 7 | f[o + 2] << 14) & 0xffff; } });
   return { fr, w };
 }
-function crc(w, base) {
+export function crc(w, base) {
   const bytes = new Uint8Array(w.buffer, w.byteOffset + (base + 4) * 2, w[base + 3]); let c = 0xaa55;
   for (const x of bytes) { c ^= x << 8; for (let i = 0; i < 8; i++) c = (c & 0x8000) ? ((c << 1) ^ 0x1021) & 0xffff : (c << 1) & 0xffff; }
   return c;
 }
-function save(m, out) {
+export function save(m, out) {
   for (const base of COPY) m.w[base + 2] = crc(m.w, base);
   const parts = m.fr.map(f => Uint8Array.from(f)); let k = 0;
   for (const f of parts) {
@@ -44,11 +45,11 @@ function save(m, out) {
   }
   writeFileSync(out, Buffer.concat(parts.map(p => Buffer.from(p))));
 }
-const newest = w => (w[32768 + 14874] > w[14874] ? 32768 : 0);
+export const newest = w => (w[32768 + 14874] > w[14874] ? 32768 : 0);
 const name = (w, b, L) => String.fromCharCode(...[...w.slice(b + 1370 + 32 * L, b + 1370 + 32 * L + 16)].filter(c => c >= 32 && c < 127));
 
-const [cmd, ...a] = process.argv.slice(2);
-if (cmd === 'show') {
+const [cmd, ...a] = import.meta.url === pathToFileURL(process.argv[1]).href ? process.argv.slice(2) : ['lib'];
+if (cmd === 'lib') {} else if (cmd === 'show') {
   const { w } = load(a[0]); const b = newest(w);
   console.log(`newest copy at ${b} (counters ${w[14874]} / ${w[32768 + 14874]}), crc ${[0, 32768].map(x => w[x + 2] === crc(w, x) ? 'OK' : 'BAD').join(' ')}`);
   for (let L = 0; L < 9; L++) {
