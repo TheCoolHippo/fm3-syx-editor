@@ -12,6 +12,10 @@ What it can do on a preset file:
 - diff two presets parameter by parameter
 - pull a stored preset from the FM3 and push a file into a slot (COM port, FM3-Edit paused)
 
+On the system side: read and write the global settings bank (`pullsystem.mjs`, `fm3sys.mjs`, `sendsys.mjs`),
+and the **footswitch layouts**: list and edit them in the system bank (`fm3fc.mjs`), or change a switch live
+without a reboot, with the same message FM3-Edit sends (`fcset.mjs`). Details in `SKILL.md`.
+
 ## Requirements
 - Windows, an FM3 on USB (tested on firmware 12.00)
 - [mcp-midi-control](https://github.com/TheAndrewStaker/mcp-midi-control) v0.8.0 installed: the scripts reuse its
@@ -36,7 +40,8 @@ MC8 Pro tools (bank editor, USB connector, backup format) live in a separate rep
 
 ## Safety
 - `push` overwrites a preset slot. Pull a backup first. Slots listed as protected in `fm3-local.json` or `FM3_PROTECTED` are refused by the script.
-- Never probe the FC / per-preset footswitch block over SysEx: it froze an FM3 once.
+- Never read unknown parameters of the footswitch block (199) over SysEx: it froze an FM3 once. `fcset.mjs` only
+  sends the SET messages FM3-Edit itself uses.
 - `harvest.mjs` places blocks live to read their defaults: keep `BATCH=1` (many heavy blocks at once froze the unit).
 
 ## Credits

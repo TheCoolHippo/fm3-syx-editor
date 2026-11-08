@@ -110,7 +110,9 @@ the FM3 stored exactly what was sent) → `switch.mjs <other>` then `switch.mjs 
 Globals are not in presets. They travel as a whole **system bank** of 197 kB, 66 frames. Read it with
 `node pullsystem.mjs <out.syx>` (FM3-Edit closed, read-only, request fn 0x43 as sent by Fractal-Bot,
 captured by USBPcap 2026-11-06; output byte-identical to a Fractal-Bot `FM3-<date>-system+gb+fc.syx`).
-Blocks 0-31 are the active system, blocks 32-63 a second copy that can lag behind it: compare block 0-31.
+The bank holds **two copies** (words 0.. and 32768.., each with its own header and CRC). The FM3 writes the
+OLDER copy and bumps a save counter at copy + 14874, so the newest copy alternates. `fm3sys.mjs` and
+`fm3fc.mjs` write every edit into both copies.
 - Format: fn 0x51 header, 64 × fn 0x52 chunks (2-byte index + 1024 words, 3 septets per word), fn 0x53
   footer (XOR of all words). NOT compressed. Word 0 = 0x1008, word 1 = 0xAA55, word 2 = CRC-CCITT
   (poly 0x1021, **init 0xAA55**) over bytes 8 .. 8 + word 3, word 3 = data length (29760).
@@ -122,6 +124,32 @@ Blocks 0-31 are the active system, blocks 32-63 a second copy that can lag behin
   Offset 1 → 0 by file, then a fresh backup matched the sent file exactly.
 - Rules: always start from a FRESH backup (it holds every global + FC layouts); ask the user before sending;
   keep the original backup to restore. Never probe for other request codes.
+
+## Footswitch layouts — `fm3fc.mjs` (stored) + `fcset.mjs` (live) (verified 2026-11-08)
+The 8 layouts + Master Layout are in the system bank, so no FC-block probing is needed.
+Switch index **i = layout × 12 + view × 3 + switch** (0-based; layout 8 = Master Layout). Offsets in a copy:
+| Field | Tap | Hold |
+|---|---|---|
+| category (0 Unassigned, 1 Bank, 2 Preset, 3 Scene, 4 Effect, 5 Utility, 6 Layout, 7 Control Switch, 8 Looper, 9 Per-Preset, 10 View, 11 Setlist, 12 Song, 13 Song Section) | 1658 + i | 2630 + i |
+| function (FM3-Edit menu order: Utility 0 Tuner 1 Tap Tempo 2 Amp Level+Save 3 Reveal Hold 4 Scene Level+Save; Effect 0 Bypass 1 Chan Select 2 Chan Toggle 3 Chan Inc/Dec) | 1766 + i | 2738 + i |
+| label mode (0 Name, 1 Number, 2 Custom for Scene) | 1874 + i | 2846 + i |
+| params, 6 words (preset/scene/layout number 1-based; Effect = [block, channel]; Inc/Dec = [step, wrap, lower, upper], step 65535 = -1) | 1982 + 6i | 2954 + 6i |
+| custom label, 10 chars + 0 | 3623 + 11i | 4811 + 11i (inferred) |
+Layout names at 1370 + 32 × layout; colour at 6000 + i (0 default, 1 red, 2 orange…).
+Effect block numbers follow an alphabetical internal list with hidden entries; the table is in `fm3fc.mjs`
+(verified: Amp 1 0, Cab 1 1, Chorus 1 2, Comp 1 4, Delay 1 7, Drive 1 9, Drive 2 10, Enhance 1 11, Filter 1 17,
+Flanger 1 21, Gate 1 25, GEQ 1 27, In 2 30, MultDly 1 38, Phaser 1 45, Pitch 1 47, Plex 1 48, Reverb 1 51,
+Rotary 1 53, TremPan 1 57, Vol/Pan 1 59, Vol/Pan 2 60, Wah 1 61).
+- `fm3fc.mjs show <system.syx> [layout]` lists every switch; `set <in> <out> <layout> <view> <switch> tap=Effect param="Wah 1" ...`
+  edits both copies. A file sent with `sendsys.mjs` is stored but the running FM3 keeps its layouts in RAM
+  until a **power cycle** (and any system save before that overwrites the edit).
+- **Live, no reboot**: FM3-Edit edits one parameter of block 199 with fn 0x01 sub 0x09:
+  `F0 00 01 74 11 01 09 00 47 01 <pid lo> <pid hi> <float32 as 5 septets, LSB first> 00 00 00 00 <xor> F7`.
+  Parameter id = stored offset − 1658 (tap category i, tap function 108 + i, tap params 324 + 6i + k,
+  hold category 972 + i), colour 4618 + i. `fcset.mjs <pid> <value> ...` rebuilds the captured messages byte
+  for byte; the FM3 applies the change at once and saves it itself. Captured with USBPcap from FM3-Edit.
+- Only SET known parameter ids. Never send GETs (sub 0x1a/0x1b) to block 199 for ids you have not seen
+  FM3-Edit use: reading unknown FC parameters froze an FM3.
 
 ## Scene loudness — `levels.py` (verified 2026-11-03 on a test preset)
 Re-amps a synthetic plucked-guitar DI (chords + single notes, peak −14 dBFS) through each scene and

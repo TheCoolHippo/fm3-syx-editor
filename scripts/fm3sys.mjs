@@ -20,14 +20,16 @@ function load(file) {
   chunks.forEach((f, k) => { for (let i = 0; i < 1024; i++) { const o = 8 + i * 3; w[k * 1024 + i] = (f[o] | f[o + 1] << 7 | f[o + 2] << 14) & 0xffff; } });
   return { b, fr, w };
 }
-function crc(w) {
-  const bytes = new Uint8Array(w.buffer, w.byteOffset + 8, w[3]); let c = 0xaa55;
+// The bank holds two copies (words 0.. and 32768..); the FM3 writes the older one and bumps the counter at copy + 14874.
+// Edits go to both copies, each with its own CRC.
+function crc(w, base = 0) {
+  const bytes = new Uint8Array(w.buffer, w.byteOffset + (base + 4) * 2, w[base + 3]); let c = 0xaa55;
   for (const x of bytes) { c ^= x << 8; for (let i = 0; i < 8; i++) c = (c & 0x8000) ? ((c << 1) ^ 0x1021) & 0xffff : (c << 1) & 0xffff; }
   return c;
 }
 const xorAll = w => w.reduce((a, x) => a ^ x, 0);
 function save(m, out) {
-  m.w[2] = crc(m.w);
+  m.w[2] = crc(m.w); m.w[32770] = crc(m.w, 32768);
   const parts = m.fr.map(f => Uint8Array.from(f));
   let k = 0;
   for (const f of parts) {
@@ -41,7 +43,7 @@ const P = name => { const n = name.toUpperCase().replace(/^GLOBAL_/, ''); const 
 const [cmd, ...a] = process.argv.slice(2);
 if (cmd === 'check') { const m = load(a[0]); const f = m.fr.at(-1); console.log(`crc ${m.w[2] === crc(m.w) ? 'OK' : 'BAD'}  footer ${(f[6] | f[7] << 7 | f[8] << 14) === xorAll(m.w) ? 'OK' : 'BAD'}  data ${m.w[3]} bytes`); }
 else if (cmd === 'get') { const m = load(a[0]); for (const n of a.slice(1)) { const p = P(n); console.log(`${p.name} (${p.displayLabel || ''}) = ${m.w[4 + p.paramId]}`); } }
-else if (cmd === 'set') { const m = load(a[0]); for (let i = 2; i < a.length; i += 2) { const p = P(a[i]); console.log(`${p.name}: ${m.w[4 + p.paramId]} -> ${+a[i + 1]}`); m.w[4 + p.paramId] = +a[i + 1]; } save(m, a[1]); console.log('wrote', a[1]); }
-else if (cmd === 'setword') { const m = load(a[0]); for (let i = 2; i < a.length; i += 2) { const w = +a[i]; console.log(`word ${w}: ${m.w[w]} -> ${+a[i + 1]}`); m.w[w] = +a[i + 1]; } save(m, a[1]); }
+else if (cmd === 'set') { const m = load(a[0]); for (let i = 2; i < a.length; i += 2) { const p = P(a[i]); console.log(`${p.name}: ${m.w[4 + p.paramId]} -> ${+a[i + 1]}`); m.w[4 + p.paramId] = m.w[32772 + p.paramId] = +a[i + 1]; } save(m, a[1]); console.log('wrote', a[1]); }
+else if (cmd === 'setword') { const m = load(a[0]); for (let i = 2; i < a.length; i += 2) { const w = +a[i]; console.log(`word ${w}: ${m.w[w]} -> ${+a[i + 1]}`); m.w[w] = m.w[32768 + w] = +a[i + 1]; } save(m, a[1]); }
 else if (cmd === 'diff') { const A = load(a[0]), B = load(a[1]); for (let i = 4; i < A.w.length; i++) if (A.w[i] !== B.w[i]) { const p = PARAMS.GLOBAL.find(x => x.paramId === i - 4); console.log(`word ${i} ${p ? p.name : '?'}: ${A.w[i]} -> ${B.w[i]}`); } }
 else console.log('get <file> <PARAM>... | set <in> <out> <PARAM> <raw>... | diff <a> <b> | check <file>');
