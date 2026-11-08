@@ -216,6 +216,8 @@ Every Setup parameter is system word w = block-1 pid + 4, and the FM3 saves Setu
 - Out 1/2 graphic EQ (verified): Out 1 words 19-29, Out 2 words 30-40, each = 31, 63, 125, 250, 500, 1k, 2k, 4k, 8k, 16k Hz, Level. Stored as 32767 + dB/12*32767 (±12 dB); a live SET takes dB (send 0 for flat, not 32767). EQ type is at 8651/8652 (0 Off, 1 Graphic, 2 Parametric).
 - MIDI/Remote: Send MIDI PC word 77 (0 Off, 1-16 channel, 17 Omni); Other tab Scene Select CC word 94, Preset Decrement CC word 120 (verified).
 - Config Spillover is word 11 (4 All, 1 Delay; verified), not to be confused with Gapless at 14877.
+- The fractal-midi FM3 catalog (GLOBAL family, paramId = pid = word - 4) names most Setup words and agrees with every word verified by FM3-Edit diffs; `fm3setup.mjs` now lists about 180 names including the front-panel-only pages: tuner config and offsets (9-18, 104, 8649-8650), Pedal page (setup 78-79, switch polarity 7418-7421, behaviour 7422-7425), Tone Control Display 134, Out 2 type/level 8684/8683, USB levels 127-128, metronome levels 123-125, FC display/ring settings, Main LCD display mode 14868, ring colours of the later categories (View 7430, Setlist 14869, Song 14870, Section 14871). Options were probed live (SET each value, read the text, restore).
+- Words 41-68, 106-107, 126-136 are the Axe-Fx III layout (inputs/outputs 3-4, IR capture, word clock, USB 5-8) and do nothing on the FM3. Still unresolved: 7431 and 14881 (Off/On, one is probably MIDI Thru), 14880 (Legacy/Red/.../Magenta, Logo Color on the Axe-Fx III), 14876, 8689.
 - Word 103 is the USB buffer size, not a footswitch setting.
 
 Stand-In Switches and Ring Colors exist only on the FM3 front panel (not in FM3-Edit); decoded from a front-panel change + system diff,
