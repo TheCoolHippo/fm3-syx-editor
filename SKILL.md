@@ -134,7 +134,7 @@ Switch index **i = layout × 12 + view × 3 + switch** (0-based; layout 8 = Mast
 | function (FM3-Edit menu order: Utility 0 Tuner 1 Tap Tempo 2 Amp Level+Save 3 Reveal Hold 4 Scene Level+Save; Effect 0 Bypass 1 Chan Select 2 Chan Toggle 3 Chan Inc/Dec) | 1766 + i | 2738 + i |
 | label mode (Scene: 0 Name, 1 Number, 2 Custom; Effect: 0 Long Name, 1 Short Name, 2 Long Name + Channel, 3 Short Name + Channel, 4 Custom) | 1874 + i | 2846 + i |
 | params, 6 words (preset/scene/layout number 1-based; Effect = [block, channel]; Inc/Dec = [step, wrap, lower, upper], step 65535 = -1) | 1982 + 6i | 2954 + 6i |
-| custom label, 10 chars + 0 | 3623 + 11i | 4811 + 11i (inferred) |
+| custom label, 10 chars + 0 | 3623 + 11i | 4811 + 11i |
 Layout names at 1370 + 32 × layout; colour at 6000 + i (0 default, 1 red, 2 orange…).
 Effect block numbers follow an alphabetical internal list with hidden entries; the table is in `fm3fc.mjs`
 (verified: Amp 1 0, Cab 1 1, Chorus 1 2, Comp 1 4, Delay 1 7, Drive 1 9, Drive 2 10, Enhance 1 11, Filter 1 17,
@@ -162,7 +162,7 @@ are also the live parameter ids on block 200:
 | function | 24 + j | 240 + j |
 | label mode | 48 + j | 264 + j |
 | params (6) | 72 + 6j | 288 + 6j |
-| custom text (11) | 432 + 11j | 696 + 11j (inferred) |
+| custom text (11) | 432 + 11j | 696 + 11j |
 
 Layout override table at 960 + i (i = layout × 12 + view × 3 + switch, value = PP − 1, 65535 = none); colour 1069 + j.
 Codes are the same as the layouts (tables in `fcmap.mjs`).
