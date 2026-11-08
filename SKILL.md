@@ -215,6 +215,7 @@ Every Setup parameter is system word w = block-1 pid + 4, and the FM3 saves Setu
 - Tables: bypass CC 138+eid, channel CC 394+eid, MIDI mapping PC n -> preset 650+n and scene 778+n, custom scales 906+12*scale+note, External Control n CC 1305+n and initial value 1321+n. CC values are 0-127, and 128 means None (send 128 live).
 - Out 1/2 graphic EQ (verified): Out 1 words 19-29, Out 2 words 30-40, each = 31, 63, 125, 250, 500, 1k, 2k, 4k, 8k, 16k Hz, Level. Stored as 32767 + dB/12*32767 (±12 dB); a live SET takes dB (send 0 for flat, not 32767). EQ type is at 8651/8652 (0 Off, 1 Graphic, 2 Parametric).
 - MIDI/Remote: Send MIDI PC word 77 (0 Off, 1-16 channel, 17 Omni); Other tab Scene Select CC word 94, Preset Decrement CC word 120 (verified).
+- Config Spillover is word 11 (4 All, 1 Delay; verified), not to be confused with Gapless at 14877.
 - Word 103 is the USB buffer size, not a footswitch setting.
 
 Stand-In Switches and Ring Colors exist only on the FM3 front panel (not in FM3-Edit); decoded from a front-panel change + system diff,

@@ -10,7 +10,7 @@
 export const SETUP = {
   // Config
   'reverb-mix': [5, 't'], 'effects-mix': [6, 't'], 'cab-modeling': [7, 't'], 'power-amp-modeling': [8, 't'],
-  'tuning-reference': [9, 't'], 'spillover': [11, 't'], 'noisegate-offset': [43, 't'], 'tap-tempo-mode': [44, 't'],
+  'tuning-reference': [9, 't'], 'spillover': [11, 'v', '4 All, 1 Delay'], 'noisegate-offset': [43, 't'], 'tap-tempo-mode': [44, 't'],
   'display-offset': [76, 'v', '0/1, shared by Config and MIDI pages'], 'default-scene': [109, 'v', '0 As Saved, 1-8'],
   'prompt-on-edit': [110, 'v'], 'ac-line-frequency': [116, 't'], 'edit-on-scene-change': [8685, 'v'],
   'speaker-impedance-curve': [8687, 'v', '0 Default'], 'gapless': [14877, 'v', '2 All, 1 Chan & Scene, 0 Off'],
