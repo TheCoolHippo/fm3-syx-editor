@@ -2,17 +2,18 @@
 // Offsets inside a system copy (s = song 0-127, k = section 0-5, L = setlist 0-3, n = slot 0-31), decoded 2026-11-08:
 //   song name 8694 + 5s, section name 9334 + 5(6s+k)  (10 chars, 2 per word, low byte first, 0-padded)
 //   section preset 13174 + 6s+k (preset + 1, 0 = None), section scene 13943 + 6s+k (1-8, 0 = Default)
-//   setlist slots 14712 + 32L + n (song number 1-128, 0 = empty; empty slots only at the end), setlist name 14841 + 5L
+//   setlist slots 14712 + 32L + n (song number 1-128, 0 = empty; empty slots only at the end), setlist name 14841 + 5L,
+//   active setlist 14861 (0-3)
 // Strides past song 1 / section 1 / slot 2 follow the manual's sizes (128 songs x 6 sections, 4 setlists x 32) and the default names.
 //   node fm3song.mjs show <sys.syx> [all]                  setlists + songs that differ from the defaults (all: every song)
 //   node fm3song.mjs set <in> <out> <op> ...               edit a file (both copies, CRCs fixed); load with sendsys + power cycle
 //   node fm3song.mjs live <op> ...                         change the running FM3 now (it saves Setup changes itself)
 // ops: song <1-128> <NAME> | sect <song> <1-6> [name=X] [preset=N|none] [scene=1-8|default] | setname <1-4> <NAME>
-//      | slots <set 1-4> <song> <song> ...  (fills slots from 1, clears the rest)
+//      | slots <set 1-4> <song> <song> ...  (fills slots from 1, clears the rest) | active <set 1-4>
 import { load, save, newest, COPY } from './fm3fc.mjs';
 
 const SONG = s => 8694 + 5 * s, SECT = (s, k) => 9334 + 5 * (6 * s + k), PRE = (s, k) => 13174 + 6 * s + k,
-  SCN = (s, k) => 13943 + 6 * s + k, SLOT = (L, n) => 14712 + 32 * L + n, SETN = L => 14841 + 5 * L;
+  SCN = (s, k) => 13943 + 6 * s + k, SLOT = (L, n) => 14712 + 32 * L + n, SETN = L => 14841 + 5 * L, ACTIVE = 14861;
 const text = (w, o) => { let r = ''; for (let i = 0; i < 5; i++) for (const c of [w[o + i] & 255, w[o + i] >> 8]) if (c) r += String.fromCharCode(c); return r; };
 const pack = (o, t) => Array.from({ length: 5 }, (_, i) => [o + i, (t.charCodeAt(2 * i) || 0) | (t.charCodeAt(2 * i + 1) || 0) << 8]);
 
@@ -39,7 +40,7 @@ if (cmd === 'show') {
   const { w } = load(a[0]); const b = newest(w), g = o => w[b + o];
   for (let L = 0; L < 4; L++) {
     const sl = []; for (let n = 0; n < 32 && g(SLOT(L, n)); n++) sl.push(g(SLOT(L, n)));
-    console.log(`Setlist ${L + 1} "${text(w, b + SETN(L))}": ${sl.length ? sl.map(s => `${s} ${text(w, b + SONG(s - 1))}`).join(' | ') : '(empty)'}`);
+    console.log(`Setlist ${L + 1}${g(ACTIVE) === L ? ' (ACTIVE)' : ''} "${text(w, b + SETN(L))}": ${sl.length ? sl.map(s => `${s} ${text(w, b + SONG(s - 1))}`).join(' | ') : '(empty)'}`);
   }
   for (let s = 0; s < 128; s++) {
     const secs = [];

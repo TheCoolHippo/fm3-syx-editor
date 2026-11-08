@@ -188,7 +188,24 @@ Offsets in a copy (s = song 0-127, k = section 0-5, L = setlist 0-3, n = slot 0-
 Live: FM3-Edit sends the usual SET (fn 0x01 sub 0x09) on block 1 with **pid = word − 4**; the FM3 stores it itself.
 `fm3song.mjs show <sys.syx>`, `set <in> <out> <op>`, `live <op>`; ops `song N NAME`, `sect S K name= preset= scene=`,
 `setname L NAME`, `slots L song song ...`. A scripted file matched FM3-Edit's result; a live edit read back as sent.
-The active setlist is not located yet.
+Active setlist: word 14861 (0-3), `fm3song.mjs ... active <1-4>`.
+
+## Other Setup parameters live — `fcset.mjs sys` (verified 2026-11-08)
+FM3-Edit changes Setup values with the same SET on **block 1, pid = system-bank word − 4**, and the FM3 saves them itself.
+`fcset.mjs sys <pid> <value> ...` sends them. Words checked (value as FM3-Edit shows unless noted):
+| Word | Setting |
+|---|---|
+| 70 | FC Hold Function Timeout (index: 0 = 0.25 s, 1 = 0.50, 2 = 0.75, 3 = 1.00 …) |
+| 112 | Main display Preset Num (1 On, 0 Off) |
+| 7014 / 7038 | CS1 command 1 MIDI channel / CC number |
+| 7111 | CS1 Exclusive (1 yes) |
+| 7426 | Hold Function Mode (0 Automatic, 1 Switch Up) |
+| 8297 | Footswitch Tuner Mode (1 Enabled) |
+| 8686 | Bank Switch Limits (**1 = Disabled, 0 = Enabled**) |
+| 8690 | FM3 Startup View |
+| 14861 | Active setlist (0-3) |
+
+Stand-In Switches and Ring Colors are not in FM3-Edit (front panel only) and are not decoded.
 
 ## Scene loudness — `levels.py` (verified 2026-11-03 on a test preset)
 Re-amps a synthetic plucked-guitar DI (chords + single notes, peak −14 dBFS) through each scene and

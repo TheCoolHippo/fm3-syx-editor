@@ -21,6 +21,8 @@ let a = import.meta.url === pathToFileURL(process.argv[1]).href ? process.argv.s
 // pid map (j = PP-1): tap cat j, func 24+j, label 48+j, params 72+6j+k, hold cat 216+j, hold func 240+j, hold label 264+j,
 // hold params 288+6j+k, tap text 432+11j, hold text 696+11j (inferred), layout override 960+i (value = PP-1, 65535 none), colour 1069+j.
 // Changes are live only: save the preset (FM3 or fm3syx push) to keep them.
+// System (Setup) parameters, block 1: node fcset.mjs sys <pid> <value> ...  pid = system-bank word - 4 (see fm3song.mjs, SKILL.md)
+if (a[0] === 'sys') { eid = 1; a = a.slice(1); }
 if (a[0] === 'pp') {
   eid = 200; a = a.slice(1);
   if (a[0] === 'text') { const [, P, txt, mode] = a, j = P - 1; a = [];
