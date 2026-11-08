@@ -206,6 +206,14 @@ FM3-Edit changes Setup values with the same SET on **block 1, pid = system-bank 
 | 8690 | FM3 Startup View |
 | 14861 | Active setlist (0-3) |
 
+### Setup pages (Config, Audio, Scales, Out EQ, MIDI/Remote)
+Every Setup parameter is system word w = block-1 pid + 4, and the FM3 saves Setup changes by itself.
+- `getsys.mjs <from> <to>` reads block-1 parameters live with FM3-Edit's GET (fn 0x01 sub 0x1a). The reply carries the FM3's own display text, MSB-first 7-bit packed from byte 21, for example "0.50 SECONDS", "CC #72" or "1536". It is read-only; use it on block 1 only, never on block 199.
+- `fm3setup.mjs list | show [filter] | set <name> <raw>` gives about 90 named parameters with their word numbers. Each is marked verified (changed in FM3-Edit and seen moving) or named from the display text.
+- Tables: bypass CC 138+eid, channel CC 394+eid, MIDI mapping PC n -> preset 650+n and scene 778+n, custom scales 906+12*scale+note, External Control n CC 1305+n and initial value 1321+n. CC values are 0-127, and 128 means None (send 128 live).
+- Out 1/2 EQ: the 22 words 19-40 read "0.00" (10 bands + level per output, order not verified). EQ type is at 8651/8652 (0 Off, 1 Graphic, 2 Parametric).
+- Word 103 is the USB buffer size, not a footswitch setting.
+
 | 6108 + c | Ring colour of FC category c (same codes as switch colours; 0 seems to mean the default) |
 | 7394 + r / 7406 + r | Stand-In row r (FM3 SW1 Tip, SW1 Ring, SW2 Tip, SW2 Ring, FC1 SW1-4, FC2 SW1-4): layout / switch, 0-based, 65535 = none (send **-1** live: 65535 is clamped) |
 
