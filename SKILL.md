@@ -153,6 +153,26 @@ Rotary 1 53, TremPan 1 57, Vol/Pan 1 59, Vol/Pan 2 60, Wah 1 61).
 - Only SET known parameter ids. Never send GETs (sub 0x1a/0x1b) to block 199 for ids you have not seen
   FM3-Edit use: reading unknown FC parameters froze an FM3.
 
+## Per-preset switches — `fm3syx.mjs pp/ppset` (file) + `fcset.mjs pp` (live) (verified 2026-11-08)
+They are in the preset itself: record eid 200, data = record start + 23 words. Offsets from there (j = PP number − 1)
+are also the live parameter ids on block 200:
+| Field | Tap | Hold |
+|---|---|---|
+| category | j | 216 + j |
+| function | 24 + j | 240 + j |
+| label mode | 48 + j | 264 + j |
+| params (6) | 72 + 6j | 288 + 6j |
+| custom text (11) | 432 + 11j | 696 + 11j (inferred) |
+
+Layout override table at 960 + i (i = layout × 12 + view × 3 + switch, value = PP − 1, 65535 = none); colour 1069 + j.
+Codes are the same as the layouts (tables in `fcmap.mjs`).
+- `fm3syx.mjs pp <file>` lists them; `ppset <in> <out> <PP> key=value ...` or `ppset ... override L V S PP|none` edits a file
+  (a scripted edit reproduced FM3-Edit's file byte for byte).
+- `fcset.mjs pp <pid> <value> ...` / `fcset.mjs pp text <PP> <TEXT>` change the loaded preset live (same message as FM3-Edit,
+  eid 200). Live edits stay in the edit buffer: store with the save message fn 0x01 sub 0x26
+  (`F0 00 01 74 11 01 26 00 00 00 00 00 <slot & 0x7f> <slot >> 7> 00 00 00 00 00 00 00 <xor> F7`) only while that slot is loaded,
+  or push a file. Live set + save + pull gave the original preset body back.
+
 ## Scene loudness — `levels.py` (verified 2026-11-03 on a test preset)
 Re-amps a synthetic plucked-guitar DI (chords + single notes, peak −14 dBFS) through each scene and
 records the output. Steps (ask the user first: the guitar input is silent while Input 1 = USB):

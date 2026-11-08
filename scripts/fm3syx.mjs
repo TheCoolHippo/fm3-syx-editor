@@ -99,6 +99,12 @@ function chainRecords(m) {
   while (o > 0 && o + 34 < m.body.length && u(o + 30) && u(o + 32)) { const n = (23 + u(o + 30) * u(o + 32)) * 2; out.push({ eid: u(o - 12), start: o - 12, end: o - 12 + n }); o += n; }
   return out;
 }
+// Per-preset switches: record eid 200, data = record start + 23 words. Offsets below are words from there and equal the
+// live pid on block 200 (fcset.mjs pp). PP index j = 0..23; layout switch i = layout*12 + view*3 + switch (0-based).
+const FC = await import('./fcmap.mjs');
+const PP = { tap: j => j, tapfunc: j => 24 + j, label: j => 48 + j, param: j => 72 + 6 * j, hold: j => 216 + j, holdfunc: j => 240 + j,
+  holdlabel: j => 264 + j, holdparam: j => 288 + 6 * j, text: j => 432 + 11 * j, holdtext: j => 696 + 11 * j, color: j => 1069 + j };
+function ppBase(m) { const r = chainRecords(m).find(x => x.eid === 200); if (!r) throw new Error('no per-preset record'); return r.start / 2 + 23; }
 function setBody(m, body) { m.body = body; m.dv = new DataView(body.buffer, body.byteOffset, body.byteLength); }
 function save(m, out, slot = m.slot) {
   let bytes = author.reencodeDumpFromRawPatch(m.bytes, huff.reencodeRawPatch(m.patch.rawPatch, m.body));
@@ -413,6 +419,52 @@ Scene Controller ${n}: ${v.map(x => +(x / 655.34).toFixed(1)).join(' ')} %` : ''
     for (let i = 0; i < n; i++) if (A.body[i] !== B.body[i]) other++;
     console.log(`(${other} body bytes differ in total)`);
   },
+  // pp <file>: per-preset switches PP#1-24 (record eid 200) and the layout switches they override
+  pp(f) {
+    const m = load(f), D = ppBase(m), w = o => m.dv.getUint16((D + o) * 2, true);
+    const txt = o => String.fromCharCode(...Array.from({ length: 10 }, (_, c) => w(o + c)).filter(c => c >= 32 && c < 127));
+    const fn = (c, x) => (FC.FUNC[FC.CAT[c]] || [])[x] ?? x;
+    const ps = o => Array.from({ length: 6 }, (_, k) => w(o + k)).join(',');
+    for (let j = 0; j < 24; j++) {
+      const tc = w(PP.tap(j)), hc = w(PP.hold(j)); if (!tc && !hc && !txt(PP.text(j))) continue;
+      const blk = tc === 4 ? ` [${FC.BLOCK[w(PP.param(j))]}]` : '';
+      console.log(`PP#${j + 1}: tap ${FC.CAT[tc] ?? tc}/${fn(tc, w(PP.tapfunc(j)))} p=${ps(PP.param(j))}${blk} label ${w(PP.label(j))} "${txt(PP.text(j))}" | hold ${FC.CAT[hc] ?? hc}/${fn(hc, w(PP.holdfunc(j)))} p=${ps(PP.holdparam(j))}${txt(PP.holdtext(j)) ? ' "' + txt(PP.holdtext(j)) + '"' : ''} | color ${w(PP.color(j))}`);
+    }
+    for (let i = 0; i < 108; i++) { const v = w(960 + i); if (v !== 65535) console.log(`override Layout ${Math.floor(i / 12) + 1} V${Math.floor(i % 12 / 3) + 1} S${i % 3 + 1} -> PP#${v + 1}`); }
+  },
+  // ppset <in> <out> <PP 1-24> key=value ... (keys: tap tapfunc label param hold holdfunc holdlabel holdparam text holdtext color; param=Wah 1)
+  // ppset <in> <out> override <layout> <view> <switch> <PP 1-24|none>
+  ppset(inF, outF, n, ...kv) {
+    const m = load(inF), D = ppBase(m), put = (o, v) => { console.log(`pid ${o} (word ${D + o}): ${m.dv.getUint16((D + o) * 2, true)} -> ${v}`); m.dv.setUint16((D + o) * 2, v, true); };
+    if (n === 'override') { const [L, V, S, P] = kv; put(960 + (L - 1) * 12 + (V - 1) * 3 + (S - 1), P === 'none' ? 65535 : P - 1); }
+    else for (const p of kv) {
+      const [k, v] = [p.slice(0, p.indexOf('=')), p.slice(p.indexOf('=') + 1)], j = n - 1;
+      if (k === 'text' || k === 'holdtext') { for (let c = 0; c < 11; c++) put(PP[k](j) + c, c < 10 && c < v.length ? v.charCodeAt(c) : 0); continue; }
+      if (!PP[k]) throw new Error('unknown key ' + k);
+      const val = !isNaN(+v) ? +v : (/param/.test(k) ? FC.BLOCK : FC.CAT).findIndex(c => c.toLowerCase() === v.toLowerCase());
+      if (val < 0) throw new Error('bad value ' + v); put(PP[k](j), val);
+    }
+    save(m, outF); console.log('wrote', outF);
+  },
+  // records <file>: chain records with their start word
+  recwords(f) {
+    const m = load(f);
+    for (const r of chainRecords(m)) console.log(`eid ${r.eid} start word ${r.start / 2} end word ${r.end / 2} cols ${m.dv.getUint16(r.start + 42, true)} rows ${m.dv.getUint16(r.start + 44, true)}`);
+  },
+  // words <file> <first word> <count>: raw 16-bit body words
+  words(f, first, count) {
+    const A = load(f); const r = [];
+    for (let k = 0; k < +count; k++) r.push(A.dv.getUint16((+first + k) * 2, true));
+    console.log(r.join(' '));
+  },
+  // rawdiff <a> <b>: every differing 16-bit body word, with its offset (for undecoded areas)
+  rawdiff(a, b) {
+    const A = load(a), B = load(b); const n = Math.min(A.body.length, B.body.length);
+    for (let o = 0; o + 1 < n; o += 2) {
+      const x = A.dv.getUint16(o, true), y = B.dv.getUint16(o, true);
+      if (x !== y) console.log(`0x${o.toString(16)} (${o}): ${x} -> ${y}${y >= 32 && y < 127 ? ` '${String.fromCharCode(y)}'` : ''}`);
+    }
+  },
   // calib.json: PARAM -> [[raw, display], ...] points, or {"lin":[min,max]} / {"log":[min,max]}
   learn(file, blk, ch, pname, display) {
     const m = load(file); const b = findBlock(m, blk); const p = paramDef(b, pname);
@@ -456,6 +508,9 @@ if (!cmd[c]) {
   rename <in> <out> <name>
   slot <in> <out> <N>                        retarget the file to another slot
   diff <a> <b>                               per-param differences
+  pp <file>                                  per-preset switches PP#1-24 and their layout overrides
+  ppset <in> <out> <PP 1-24> key=value ...   keys tap tapfunc label param hold holdfunc holdlabel holdparam text holdtext color
+  ppset <in> <out> override <L> <V> <S> <PP|none>   make layout switch use a per-preset switch
   learn <file> <Block> <ch> <PARAM> <display>  record a raw->display point (calib.json)
   push <file> --yes                          store the file into the slot in its header (slots in fm3-local.json refused)`);
   process.exit(c ? 1 : 0);

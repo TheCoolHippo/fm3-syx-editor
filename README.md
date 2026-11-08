@@ -14,7 +14,8 @@ What it can do on a preset file:
 
 On the system side: read and write the global settings bank (`pullsystem.mjs`, `fm3sys.mjs`, `sendsys.mjs`),
 and the **footswitch layouts**: list and edit them in the system bank (`fm3fc.mjs`), or change a switch live
-without a reboot, with the same message FM3-Edit sends (`fcset.mjs`). Details in `SKILL.md`.
+without a reboot, with the same message FM3-Edit sends (`fcset.mjs`). Per-preset switches (PP#1-24 and their layout
+overrides) too: in a preset file (`fm3syx.mjs pp`, `ppset`) or live (`fcset.mjs pp`). Details in `SKILL.md`.
 
 ## Requirements
 - Windows, an FM3 on USB (tested on firmware 12.00)
