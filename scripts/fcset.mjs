@@ -1,7 +1,9 @@
 // Live footswitch edit, same message FM3-Edit sends (fn 0x01 sub 0x09 on block 199), no reboot needed.
 // node fcset.mjs <pid> <value> [<pid> <value> ...]   value = float (category, function, scene, block number ...)
 // pid map (i = layout*12 + view*3 + switch, 0-based): tap cat i, tap func 108+i, tap label 216+i, tap params 324+6i+k,
-// hold cat 972+i, hold func 1080+i, hold label 1188+i, hold params 1296+6i+k, colour 4618+i (from one sample).
+// hold cat 972+i, hold func 1080+i, hold label 1188+i, hold params 1296+6i+k, tap custom text 2241+11i (one char per pid,
+// value = char code, 0 after the end), hold text 3429+11i (inferred), colour 4618+i.
+// node fcset.mjs text <layout 1-9> <view 1-4> <switch 1-3> <TEXT>   sets tap label mode Custom (Scene 2 / Effect 4: pass mode=N) and text
 // Only pids seen in FM3-Edit captures are known safe. Never send GETs (sub 0x1a/0x1b) to block 199 for unknown pids.
 import { createRequire } from 'node:module';
 import { PORT } from './local.mjs';
@@ -13,7 +15,12 @@ export function setMsg(pid, value) {
     u & 0x7f, (u >> 7) & 0x7f, (u >> 14) & 0x7f, (u >> 21) & 0x7f, (u >> 28) & 0x0f, 0, 0, 0, 0];
   let c = 0; for (const b of m) c ^= b; return Buffer.from([...m, c & 0x7f, 0xf7]);
 }
-const a = process.argv.slice(2);
+let a = process.argv.slice(2);
+if (a[0] === 'text') {
+  const [, L, V, S, txt, mode] = a; const i = (L - 1) * 12 + (V - 1) * 3 + (S - 1); a = [];
+  for (let c = 0; c < 11; c++) a.push(2241 + 11 * i + c, c < 10 && c < txt.length ? txt.charCodeAt(c) : 0);
+  if (mode) a.push(216 + i, +mode.replace('mode=', ''));
+}
 if (a.length >= 2) {
   const port = new SerialPort({ path: PORT, baudRate: 115200 });
   await new Promise((ok, ko) => port.on('open', ok).on('error', e => ko(new Error(e.message + ' (close FM3-Edit)'))));

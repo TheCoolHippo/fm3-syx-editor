@@ -146,7 +146,9 @@ Rotary 1 53, TremPan 1 57, Vol/Pan 1 59, Vol/Pan 2 60, Wah 1 61).
 - **Live, no reboot**: FM3-Edit edits one parameter of block 199 with fn 0x01 sub 0x09:
   `F0 00 01 74 11 01 09 00 47 01 <pid lo> <pid hi> <float32 as 5 septets, LSB first> 00 00 00 00 <xor> F7`.
   Parameter id = stored offset − 1658 (tap category i, tap function 108 + i, tap params 324 + 6i + k,
-  hold category 972 + i), colour 4618 + i. `fcset.mjs <pid> <value> ...` rebuilds the captured messages byte
+  hold category 972 + i, tap label mode 216 + i); from the text area on the ids are shifted by +276: tap custom
+  text 2241 + 11i (one parameter per character, value = character code, 0 after the end), colour 4618 + i.
+  `fcset.mjs text <layout> <view> <switch> <TEXT> [mode=N]` renames a switch live. `fcset.mjs <pid> <value> ...` rebuilds the captured messages byte
   for byte; the FM3 applies the change at once and saves it itself. Captured with USBPcap from FM3-Edit.
 - Only SET known parameter ids. Never send GETs (sub 0x1a/0x1b) to block 199 for ids you have not seen
   FM3-Edit use: reading unknown FC parameters froze an FM3.
