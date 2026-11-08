@@ -1,8 +1,8 @@
 // FM3 Setup pages (Config, Audio, Scales, Out EQ, MIDI/Remote) without FM3-Edit, decoded 2026-11-08 (firmware 12).
 // Every Setup parameter is system-bank word w = live pid + 4 on block 1. The FM3 saves Setup changes itself.
-// Names: v = verified by changing it in FM3-Edit and seeing the word move; t = named from the display text the FM3 returns.
+// Names: v = verified by changing it in FM3-Edit and seeing the word move; t = named from the display text the FM3 returns, i = inferred from its neighbours.
 //   node fm3setup.mjs show [filter]          read the named parameters live (read-only GET, shows the FM3's own text)
-//   node fm3setup.mjs set <name> <raw> ...   write raw values (word values, e.g. CC number, 128 = None, menu index)
+//   node fm3setup.mjs set <name> <raw> ...   write values (CC number, 128 = None, menu index; EQ in dB)
 //   node fm3setup.mjs list                   names, words, notes
 // Tables (word = base + index): bypass CC 138+eid, channel CC 394+eid (eid = block effect id, see fm3perf.mjs EFFECT_ID),
 // MIDI mapping PC n -> preset 650+n, scene 778+n (0 = As Saved), custom scales 906+12*scale+note (A..G#),
@@ -34,9 +34,14 @@ export const SETUP = {
   'cc-out1-vol-inc': [98, 'v'], 'cc-out1-vol-dec': [99, 'v'], 'cc-out2-vol-inc': [7117, 'v'], 'cc-out2-vol-dec': [7118, 'v'],
   'cc-looper-record': [1290, 'v'], 'cc-looper-play': [1291, 't'], 'cc-looper-undo': [1292, 't'], 'cc-looper-once': [1293, 't'],
   'cc-looper-reverse': [1294, 't'], 'cc-looper-stop': [1295, 'v'], 'cc-looper-halfspeed': [1296, 't'],
+  'cc-preset-dec': [120, 'v'], 'cc-scene-select': [94, 'v'], 'send-midi-pc': [77, 'v', '0 Off, 1-16 channel, 17 Omni'],
   // FC (see SKILL.md for the rest of FC Config)
   'fm3-startup-layout': [3606, 'v', '1-based'], 'fm3-startup-view': [8690, 'v'],
 };
+// Output EQ (graphic): Out 1 words 19-29, Out 2 words 30-40 = 31, 63, 125, 250, 500, 1k, 2k, 4k, 8k, 16k Hz, Level.
+// Stored 32767 + dB/12*32767; live SET takes dB (send 0 for flat, not 32767).
+const BANDS = ['31', '63', '125', '250', '500', '1k', '2k', '4k', '8k', '16k', 'level'];
+BANDS.forEach((b, i) => { SETUP[`out1-eq-${b}`] = [19 + i, i === 0 || i >= 9 ? 'v' : 'i', 'dB']; SETUP[`out2-eq-${b}`] = [30 + i, i === 1 ? 'v' : 'i', 'dB']; });
 for (let n = 1; n <= 16; n++) { SETUP[`ext${n}-cc`] = [1305 + n, n <= 6 ? 'v' : 't']; SETUP[`ext${n}-init`] = [1321 + n, 't']; }
 
 const [cmd, ...a] = process.argv[1] && import.meta.url === new URL('file:///' + process.argv[1].replace(/\\/g, '/')).href ? process.argv.slice(2) : ['lib'];
